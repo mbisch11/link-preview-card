@@ -20,7 +20,11 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
 
   constructor() {
     super();
-    this.title = "";
+    this.title = "Default title";
+    this.loading = false;
+    this.
+    this.url = "";
+    this.items = [];
     this.t = this.t || {};
     this.t = {
       ...this.t,
@@ -40,6 +44,10 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
     return {
       ...super.properties,
       title: { type: String },
+      loading: {type: Boolean},
+      url: {type: String},
+      description: {type: String},
+      items: {type: Array}
     };
   }
 
@@ -53,6 +61,18 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
         background-color: var(--ddd-theme-accent);
         font-family: var(--ddd-font-navigation);
       }
+      .loader {
+        border: 25px solid lightgray; /* Light grey */
+        border-top: 25px solid #d47e15; /* Blue */
+        border-radius: 100%;
+        width: 100px;
+        height: 100px;
+      animation: spin 10s linear infinite;
+      }
+      @keyframes spin {
+        50% { transform: rotate(180deg); }
+        100% { transform: rotate(360deg); }
+      }
       .wrapper {
         margin: var(--ddd-spacing-2);
         padding: var(--ddd-spacing-4);
@@ -63,12 +83,34 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
     `];
   }
 
+  updateResults(Value){
+      this.loading = true;
+      fetch('${this.url}')
+        .then(res => {
+          if(!res.ok){
+            console.log("Error loading your webpage!");
+          }
+          return res.json();
+        }).then(data => {
+          if(data.collection){
+            this.items = data.collection.items;
+          }
+          this.loading = false;
+        }).catch(error => {
+          console.log("Error formatting!");
+          this.loading = false;
+        })
+      console.log(data)
+  }
+
   // Lit render the HTML
   render() {
     return html`
 <div class="wrapper">
-  <h3><span>${this.t.title}:</span> ${this.title}</h3>
-  <slot></slot>
+  <div class="card wrapper">
+    <h3>${this.title}</h3>
+  </div>
+  <div class="loader"></div>
 </div>`;
   }
 
