@@ -22,9 +22,10 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
     super();
     this.title = "Default title";
     this.loading = false;
-    this.
+    this.description = "####";
     this.url = "";
     this.items = [];
+    this.image = "https://i.ytimg.com/vi/lcakpMnPNMM/hq2.jpg?sqp=-oaymwEYCNYCEOgCSFryq4qpAwoIARUAAIhC0AEB&rs=AOn4CLDRFWhyOMykg3HVSM7qkWUKemBo7Q";
     this.t = this.t || {};
     this.t = {
       ...this.t,
@@ -46,6 +47,7 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
       title: { type: String },
       loading: {type: Boolean},
       url: {type: String},
+      image: {type: String},
       description: {type: String},
       items: {type: Array}
     };
@@ -65,8 +67,8 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
         border: 25px solid lightgray; /* Light grey */
         border-top: 25px solid #d47e15; /* Blue */
         border-radius: 100%;
-        width: 100px;
-        height: 100px;
+        width: 75px;
+        height: 75px;
       animation: spin 10s linear infinite;
       }
       @keyframes spin {
@@ -80,6 +82,24 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
       h3 span {
         font-size: var(--link-preview-card-label-font-size, var(--ddd-font-size-s));
       }
+      .header {
+        font-size: 24px;
+        text-decoration: underline;
+      }
+      .desc {
+          font-size: 16px;
+      }
+      .image{
+          height: 200px;
+      }
+      .wrapper {
+        border: 3px solid lightgray;
+        border-radius: 20px;
+        background-color: darkgray;
+        width: 450px;
+        height: 330px;
+        layout: inline-block;
+      }
     `];
   }
 
@@ -92,8 +112,12 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
           }
           return res.json();
         }).then(data => {
-          if(data.collection){
-            this.items = data.collection.items;
+          if(data.collection && data.collection.items){
+            this.items = data.collection.items.map(item => ({
+              title: item.name || "No Title",
+              description: item.description || "####",
+              image: item.logo || "No"
+            }))
           }
           this.loading = false;
         }).catch(error => {
@@ -108,7 +132,9 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
     return html`
 <div class="wrapper">
   <div class="card wrapper">
-    <h3>${this.title}</h3>
+    <h3 class="header"><a src="${this.url}">${this.title}</a></h3>
+      <img src="${this.image}" class="image"></img>
+      <p class="desc">${this.description}</p>
   </div>
   <div class="loader"></div>
 </div>`;
