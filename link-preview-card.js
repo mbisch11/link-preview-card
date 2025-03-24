@@ -23,14 +23,12 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
     this.title = "Default title";
     this.loading = false;
     this.description = "####";
-    this.url = "";
+    this.link = "";
+    this.href = "";
     this.items = [];
+    this.themeColor = "white";
     this.image = "https://i.ytimg.com/vi/lcakpMnPNMM/hq2.jpg?sqp=-oaymwEYCNYCEOgCSFryq4qpAwoIARUAAIhC0AEB&rs=AOn4CLDRFWhyOMykg3HVSM7qkWUKemBo7Q";
-    this.t = this.t || {};
-    this.t = {
-      ...this.t,
-      title: "Title",
-    };
+
     this.registerLocalization({
       context: this,
       localesPath:
@@ -45,11 +43,13 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
     return {
       ...super.properties,
       title: { type: String },
-      loading: {type: Boolean},
-      url: {type: String},
+      loading: {type: Boolean, attribute: "loading-state"},
+      href: {type: String},
       image: {type: String},
       description: {type: String},
-      items: {type: Array}
+      items: {type: Array},
+      link: {type: String},
+      themeColor: {type: String}
     };
   }
 
@@ -59,9 +59,21 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
     css`
       :host {
         display: block;
-        color: var(--ddd-theme-primary);
+        color: var(--ddd-theme-primary-2);
         background-color: var(--ddd-theme-accent);
         font-family: var(--ddd-font-navigation);
+        border-radius: 8px;
+        padding: 10px;
+        max-width: 400px;
+        border: 1px solid;
+      }
+      .image {
+        max-width: 100%;
+        border-radius: 6px;
+      }
+      .title {
+        font-weight: bold;
+        color: var(--ddd-primary-2);
       }
       .loader {
         border: 25px solid lightgray; /* Light grey */
@@ -69,7 +81,7 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
         border-radius: 100%;
         width: 75px;
         height: 75px;
-      animation: spin 10s linear infinite;
+        animation: spin 10s linear infinite;
       }
       @keyframes spin {
         50% { transform: rotate(180deg); }
@@ -79,72 +91,63 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
         margin: var(--ddd-spacing-2);
         padding: var(--ddd-spacing-4);
       }
-      h3 span {
-        font-size: var(--link-preview-card-label-font-size, var(--ddd-font-size-s));
-      }
-      .header {
-        font-size: 24px;
-        text-decoration: underline;
-      }
-      .desc {
-          font-size: 16px;
-      }
-      .image{
-          height: 200px;
-      }
-      .wrapper {
-        border: 3px solid lightgray;
-        border-radius: 20px;
-        background-color: darkgray;
-        width: 450px;
-        height: 330px;
-        layout: inline-block;
-      }
     `];
   }
 
-  updateResults(Value){
-      this.loading = true;
-      fetch('${this.url}')
-        .then(res => {
-          if(!res.ok){
-            console.log("Error loading your webpage!");
-          }
-          return res.json();
-        }).then(data => {
-          if(data.collection && data.collection.items){
-            this.items = data.collection.items.map(item => ({
-              title: item.name || "No Title",
-              description: item.description || "####",
-              image: item.logo || "No"
-            }))
-          }
-          this.loading = false;
-        }).catch(error => {
-          console.log("Error formatting!");
-          this.loading = false;
-        })
-      console.log(data)
+  updated(changedProperties) {
+    if (changedProperties.has("href") && this.href) {
+      this.fetchInfo(this.href);
+    }
+  }
+
+  async fetchInfo(params) {
+    this.loading = true;
+    const url = `https://open-apis.hax.cloud/api/services/website/metadata?q=${this.href}`;
+    try{
+      const res = await this.fetch(url);
+      if(!res.ok){
+        throw new Error(`Response: ${res.status}`)
+      }
+      
+      const json = await response.json();
+      this.title =  json.data["title"]|| json.data["og:title"] || "No Title Available";
+      this.description = json.data["description"] || "No Description Available (Sorry)";
+      this.image = json.data["logo"] || json.data["image"] || json.data["og:image"] || "";
+      this.link = json.data["url"] || link;
+      this.themeColor = json.data["theme-color"] || "white"
+      
+      this.loading = false;
+    }catch (e){
+      this.title = "No Preview Available :(";
+      this.description = "";
+      this.image = "https://media.istockphoto.com/id/932022348/vector/sad-face-icon-unhappy-face-symbol.jpg?s=612x612&w=0&k=20&c=ZpGiAAFxUNnde83WA2mqotDiZF2lFukmu5vs8fHc8rA=";
+      this.link = "";
+      this.themeColor = "white";
+
+      this.loading = false;
+    }
+    
   }
 
   // Lit render the HTML
-  render() {
-    return html`
-<div class="wrapper">
-  <div class="card wrapper">
-    <h3 class="header"><a src="${this.url}">${this.title}</a></h3>
-      <img src="${this.image}" class="image"></img>
-      <p class="desc">${this.description}</p>
-  </div>
-  <div class="loader"></div>
-</div>`;
-  }
+render() {
+  return html`
+  <div class="wrapper">
+    ${this.loading ? html`<div class="loader"></div>` : html`
+      <div class="card wrapper">
+        <h3 class="header"><a href="${this.href}" target="_blank">${this.title}</a></h3>
+          <img src="${this.image}" class="image"></img>
+          <p class="desc">${this.description}</p>
+      </div>`
+    }
+  </div>`;
+}
 
   /**
    * haxProperties integration via file reference
    */
   static get haxProperties() {
-    return new URL(`./lib/${this.tag}.haxProperties.json`, import.meta.url)
+    return new href(`./lib/${this.tag}.haxProperties.json`, import.meta.href)
       .href;
   }
 }
