@@ -60,20 +60,44 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
       :host {
         display: block;
         color: var(--ddd-theme-primary-2);
-        background-color: var(--ddd-theme-accent);
+        background-color: var(--themeColor);
         font-family: var(--ddd-font-navigation);
         border-radius: 8px;
         padding: 10px;
-        width: 400px;
+        max-width: 350px;
         border: 1px solid;
       }
+      .wrapper {
+        margin: var(--ddd-spacing-1);
+        padding: var(--ddd-spacing-1);
+        background-color: var(--themeColor);
+      }
+      .card-wrapper{
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        width: 334px;
+      }
+      .header{
+        font-weight: bold;
+        margin-top: var(--ddd-spacing-1);
+        margin-bottom: var(--ddd-spacing-3);
+        text-align: center;
+      }
+      .divider{
+        border: 1px solid;
+        margin-bottom: var(--ddd-spacing-2);
+        width: 334px;
+      }
       .image {
+        max-height: 150px;
         width: 300px;
+        object-fit: cover;
         border-radius: 6px;
       }
-      .title {
-        font-weight: bold;
-        color: var(--ddd-primary-2);
+      .desc{
+        margin-top: var(--ddd-spacing-3);
+        margin-bottom: var(--ddd-spacing-1);
       }
       .loader {
         border: 25px solid lightgray; /* Light grey */
@@ -86,10 +110,6 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
       @keyframes spin {
         50% { transform: rotate(180deg); }
         100% { transform: rotate(360deg); }
-      }
-      .wrapper {
-        margin: var(--ddd-spacing-2);
-        padding: var(--ddd-spacing-4);
       }
     `];
   }
@@ -114,10 +134,13 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
       this.description = json.data["description"] || "No Description Available (Sorry)";
       this.image = json.data?.["ld+json"]?.logo ?? (json.data["logo"] || json.data["og:image"] || json.data["image"] || "");
       this.link = json.data["url"] || link;
-      this.themeColor = json.data["theme-color"] || "white"
+      this.themeColor = json.data["theme-color"] || "white";
       
-      if(this.description.length > 100){
-        this.description = this.description.substring(0, 100) + "...";
+      if(this.description.length > 110){
+        this.description = this.description.substring(0, 110) + "...";
+      }
+      if(!this.image.startsWith("http")){
+        this.image = "https://monovm.com/uploads/tinymce/Suno/2021/01/19/60068947652ed-domain-name.webp";
       }
 
       this.loading = false;
@@ -139,10 +162,11 @@ render() {
   return html`
   <div class="wrapper">
     ${this.loading ? html`<div class="loader"></div>` : html`
-      <div class="card wrapper">
+      <div class="card-wrapper">
         <h3 class="header"><a href="${this.href}" target="_blank">${this.title}</a></h3>
-          <img src="${this.image}" class="image"></img>
-          <p class="desc">${this.description}</p>
+        <hr class="divider">
+        <img src="${this.image}" class="image"></img>
+        <p class="desc">${this.description}</p>
       </div>`
     }
   </div>`;
