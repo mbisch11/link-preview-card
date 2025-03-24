@@ -104,20 +104,21 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
     this.loading = true;
     const url = `https://open-apis.hax.cloud/api/services/website/metadata?q=${this.href}`;
     try{
-      const res = await this.fetch(url);
+      const res = await fetch(url);
       if(!res.ok){
         throw new Error(`Response: ${res.status}`)
       }
       
-      const json = await response.json();
-      this.title =  json.data["title"]|| json.data["og:title"] || "No Title Available";
+      const json = await res.json();
+      this.title =  json.data["og:title"] || json.data["title"]|| "No Title Available";
       this.description = json.data["description"] || "No Description Available (Sorry)";
-      this.image = json.data["logo"] || json.data["image"] || json.data["og:image"] || "";
+      this.image = json.data["logo"] || json.data["og:image"] || json.data["image"] || "";
       this.link = json.data["url"] || link;
       this.themeColor = json.data["theme-color"] || "white"
       
       this.loading = false;
     }catch (e){
+      console.log(e)
       this.title = "No Preview Available :(";
       this.description = "";
       this.image = "https://media.istockphoto.com/id/932022348/vector/sad-face-icon-unhappy-face-symbol.jpg?s=612x612&w=0&k=20&c=ZpGiAAFxUNnde83WA2mqotDiZF2lFukmu5vs8fHc8rA=";
