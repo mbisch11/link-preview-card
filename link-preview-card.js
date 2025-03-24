@@ -64,11 +64,11 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
         font-family: var(--ddd-font-navigation);
         border-radius: 8px;
         padding: 10px;
-        max-width: 400px;
+        width: 400px;
         border: 1px solid;
       }
       .image {
-        max-width: 100%;
+        width: 300px;
         border-radius: 6px;
       }
       .title {
@@ -112,10 +112,14 @@ export class LinkPreviewCard extends DDDSuper(I18NMixin(LitElement)) {
       const json = await res.json();
       this.title =  json.data["og:title"] || json.data["title"]|| "No Title Available";
       this.description = json.data["description"] || "No Description Available (Sorry)";
-      this.image = json.data["logo"] || json.data["og:image"] || json.data["image"] || "";
+      this.image = json.data?.["ld+json"]?.logo ?? (json.data["logo"] || json.data["og:image"] || json.data["image"] || "");
       this.link = json.data["url"] || link;
       this.themeColor = json.data["theme-color"] || "white"
       
+      if(this.description.length > 100){
+        this.description = this.description.substring(0, 100) + "...";
+      }
+
       this.loading = false;
     }catch (e){
       console.log(e)
